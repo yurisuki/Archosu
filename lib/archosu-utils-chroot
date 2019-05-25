@@ -1,0 +1,59 @@
+#!/bin/bash
+# This script will be executed in chroot environment.
+source /lib/archosu-main
+
+
+introduction() {
+	dialog --backtitle "$tit" --title "Chrooted" --msgbox "Now, you're chrooted inside your new system. You're almost ready to go, but I still have to do some stuff for you." 6 70
+}
+
+locale() { # Set system locale
+	dialog --backtitle "$tit" --title "Setting system locale" --infobox "Setting system locale..." 4 70
+	echo "LANG=en_US.UTF-8" >> /etc/locale.conf
+	echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
+	echo "en_US ISO-8859-1" >> /etc/locale.gen
+	locale-gen >/dev/null 2>&1
+}
+
+enableservices() { # Enable some key services
+	dialog --backtitle "$tit" --title "Enabling services..." --infobox "Enabling NetworkManager..." 4 70
+	systemctl enable NetworkManager >/dev/null
+
+}
+
+getuserandpass() { # Prompts user for new username an password.
+	name=$(dialog --title "Creating new account" --backtitle "$tit" --inputbox "First, please enter a name for the user account." 10 60 3>&1 1>&2 2>&3 3>&1) || exit
+	while ! echo "$name" | grep "^[a-z_][a-z0-9_-]*$" >/dev/null 2>&1; do
+		name=$(dialog --title "Creating new account" --backtitle "$tit" --no-cancel --inputbox "Username not valid. Give a username beginning with a letter, with only lowercase letters, - or _." 10 60 3>&1 1>&2 2>&3 3>&1)
+	done
+	pass1=$(dialog --title "Creating new account" --backtitle "$tit" --no-cancel --passwordbox "Enter a password for that user." 10 60 3>&1 1>&2 2>&3 3>&1)
+	pass2=$(dialog --title "Creating new account" --backtitle "$tit" --no-cancel --passwordbox "Retype password." 10 60 3>&1 1>&2 2>&3 3>&1)
+	while ! [ "$pass1" = "$pass2" ]; do
+		unset pass2
+		pass1=$(dialog --title "Creating new account" --backtitle "$tit" --no-cancel --passwordbox "Passwords do not match.\\n\\nEnter password again." 10 60 3>&1 1>&2 2>&3 3>&1)
+		pass2=$(dialog --title "Creating new account" --backtitle "$tit" --no-cancel --passwordbox "Retype password." 10 60 3>&1 1>&2 2>&3 3>&1)
+	done
+}
+
+adduserandpass() { # Adds user `$name` with password $pass1.
+	dialog --title "Creating new account" --backtitle "$tit" --infobox "Adding user \"$name\"..." 4 50
+	useradd -m -g wheel -s /bin/bash "$name" >/dev/null 2>&1 ||
+	usermod -a -G wheel "$name" && mkdir -p /home/"$name" && chown "$name":wheel /home/"$name"
+	echo "$name:$pass1" | chpasswd
+	unset pass1 pass2
+}
+
+installgrub() { # Install grub, the bootloader
+	dialog --title "Downloading bootloader" --backtitle "$tit" --infobox "Downloading \`grub\`, the bootloader." 4 70
+	sudo pacman --noconfirm -Sy grub os-prober >/dev/null 2>&1
+	dialog --title "Installing bootloader" --backtitle "$tit" --infobox "Installing \`grub\`, the bootloader." 4 70
+	grub-install "/dev/$(cat /grubdrive)" >/tmp/grublog || clear && echo -e "The installation of bootloader has failed.\\nLOG:\\n$(cat /tmp/grublog)" && exit
+	grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1
+}
+
+bash /lib/archosu-utils-time # Set timezone
+enableservices
+getuserandpass
+adduserandpass
+echo "%wheel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers # Make sudo want no password
+installgrub

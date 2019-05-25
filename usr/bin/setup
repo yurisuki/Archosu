@@ -1,0 +1,41 @@
+#!/bin/bash
+# This script will install my Arch Linux based distro focused on osu! game.
+# The script itself may include some `manjaro-architect` parts.
+#
+# Written by yurisuki <yurisuki@waifu.club>
+#
+# This program is free software, provided under the GNU General Public License
+# as published by the Free Software Foundation. So feel free to copy, distribute,
+# or modify it as you wish.
+
+### VARIABLES
+title=":: Archosu! architect ::"
+
+### FUNCTIONS
+connect() {
+    if [[ $(cat /proc/1/comm) == "systemd" ]]; then
+	        if [[ $(systemctl is-active NetworkManager) == "active" ]]; then
+		dialog --backtitle "$title" --yesno "Please connect to the internet\n" 0 0 &&
+              clear && nmtui || clear && exit 0
+        else
+            dialog --backtitle "$title" --title " Error: " --msgbox "No network service detected!\nquitting." 0 0 &&
+              clear && exit 0
+        fi
+    fi
+}
+
+download() {
+sudo pacman --noconfirm -Syy "$@"
+echo -e "\\nPress ENTER to continue."
+}
+
+### AN ACTUAL SCRIPT
+# Check if internet connection is presented.
+ping -c 1 archlinux.org >/dev/null 2>&1 || connect
+
+# Download all the packages including the architect itself.
+download archlinux-keyring git 2>&1 | dialog --title "Installing all the needed packages for the installation." --backtitle "$title" --programbox "Updating the keyring and downloading osu-architect (the installation tool)" 25 90
+
+# Execute the architect.
+
+

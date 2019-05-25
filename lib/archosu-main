@@ -1,0 +1,18 @@
+#!/bin/bash
+# This script will be sourced by the `archosu-architect` to
+# save me ton of work.
+#
+# The `archosu-architect`'s name will be shorted for the rest of my script as `arsu`
+
+title=":: Archosu! architect" # Title used by all scripts in arsu.
+version="$(cat /lib/archosu-version)" # Parse arsu's local version (the one installed on your machine or iso) into a variable.
+actualversion="$(curl -s -LO https://raw.githubusercontent.com/yurisuki/Archosu/master/lib/archosu-version)" # Parse arsu's version on GitHub into a variable.
+tit="$title -- $version ::" # Merge `$title` and `$version` into one variable
+author="yurisuki <yurisuki@waifu.club>"
+enter="Press ENTER to continue."
+# Check if your local version of arsu is up-to-date with one's from GitHub, if not, then parse it into a variable.
+if [ "$version" == "$actualversion" ] ; then
+	uptodate="yes"
+else
+	uptodate="no"
+fi

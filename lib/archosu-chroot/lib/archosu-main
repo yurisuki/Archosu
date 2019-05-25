@@ -1,0 +1,10 @@
+#!/bin/bash
+# This script will be sourced by the `archosu-architect` to
+# save me ton of work.
+#
+# The `archosu-architect`'s name will be shorted for the rest of my script as `arsu`
+
+title=":: Archosu! architect" # Title used by all scripts in arsu.
+tit="$title ::" # Merge `$title` and `$version` into one variable
+author="yurisuki <yurisuki@waifu.club>"
+enter="Press ENTER to continue."

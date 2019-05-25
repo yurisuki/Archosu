@@ -1,0 +1,22 @@
+#!/bin/bash
+# This script will download the base system for you.
+source /lib/archosu-main
+
+
+introduction() {
+	dialog --backtitle "$tit" --title "Archosu! installation" --msgbox "This part of the installation will install the base system to your disk." 6 70
+}
+
+download() {
+	sudo pacstrap /mnt "$@"
+	echo -e "\\n$enter"
+}
+
+chrootfiles() {
+	cp -r /lib/archosu-chroot/* /mnt/
+	arch-chroot /mnt /bin/bash /lib/archosu-utils-chroot
+}
+
+introduction
+download base base-devel networkmanager dialog 2>&1 | dialog --title "Installing all the needed packages for the OS." --backtitle "$tit" --programbox 25 90
+chrootfiles

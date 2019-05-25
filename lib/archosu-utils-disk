@@ -1,0 +1,69 @@
+#!/bin/bash
+# This script will help you partition,
+# format and mount a drive.
+source /lib/archosu-main
+unset fake
+
+menu() { # This one will show dialog menu with selection of some things.
+	OPTIONS=(1 "Partition"
+	2 "List drives"
+	3 "Select drive"
+	4 "Format and mount drive")
+
+CHOICE=$(dialog --clear \
+		--no-cancel \
+                --backtitle "$tit" \
+                --title "What do you want to do? -- Disks" \
+                --menu "$MENU" \
+                15 40 4 \
+                "${OPTIONS[@]}" \
+                2>&1 >/dev/tty)
+
+case $CHOICE in
+        1) partitiondrive ;;
+        2) listalldrives "This is your disks tree on your system." ;;
+	3) selectdrive ;;
+	4) formatandmountdrive ;;
+esac
+}
+
+listalldrives() {
+	unset fake
+	lsblk > /tmp/drives # This one will output tree with your drives to a file, which is later used by this script.
+	lsblkandenter(){ echo -e "$(lsblk)\\n\\n$enter"
+	}
+	lsblkandenter | dialog --title "Disk tree" --backtitle "$tit" --programbox "$1" 35 90
+	menu
+
+}
+
+partitiondrive() {
+	dialog --backtitle "$tit" --title "Disk partitioning" --msgbox "Now, you will be greeted with utility, which is called \`cfdisk\`.\\nHere you partiton your drive.\\n\\nSIMPLE GUIDE FOR USING \`cfdisk\`:\\n1) Remove the drive you want to use\\n2) Make a new drive you want to use\\n3) Make it bootable\\n4) Save (write \`yes\` and press ENTER)\\n5) Exit" 15 90
+	sudo cfdisk
+	selectdrive
+}
+
+selectdrive() {
+	drive=$(dialog --title "Selecting the disk" --backtitle "$tit" --cancel-label "Show the disks tree" --inputbox "Which drive do you want to install Archosu! on? (eg. sda1). Also, don't put /dev/ before the drive, because the script won't work otherwise.\\n\\nSelect one of the buttons under the input box using down arrow key and then left or right arrow key.$fake" 18 60 3>&1 1>&2 2>&3 3>&1) || listalldrives "This is your disks tree on your system."
+	! lsblk | grep "$drive" >/dev/null && fake="\\n\\nThe drive you've selected doesn't exist." && selectdrive # Check if the selected drive exists
+}
+
+formatandmountdrive() {
+	[ -z "$drive" ] && nodrive="No drive isn't selected." && menu
+	dialog --title "Umounting drive" --backtitle "$tit" --infobox "Umounting mount point..." 4 70
+	sudo umount /mnt >/dev/null 2>&1
+	dialog --title "Formating drive" --backtitle "$tit" --infobox "Formatting drive as \`ext4\`..." 4 70
+	! sudo mkfs.ext4 "/dev/$drive" >/tmp/driveformattinglog && clear && echo -e "The drive formatting has failed for some reason.\\nLOG\\n$(cat /tmp/driveformattinglog)\\nPlease, report this to GitHub." && exit
+	dialog --title "Mounting drive" --backtitle "$tit" --infobox "Mounting drive to \`/mnt\`..." 4 70
+	! mount "/dev/$drive" /mnt >/tmp/drivemountinglog && echo -e "The drive wasn't mounted for some reason.\\nLOG:\\n$(cat /tmp/drivemountinglog)\\nPlease, report this to GitHub." && exit
+	dialog --title "Generating fstab file" --backtitle "$tit" --infobox "Generating fstab file..."
+	genfstab -U /mnt >> /mnt/etc/fstab
+	echo "$drive" | sed 's/[0-9]*//g' >/mnt/grubdrive # For `grub` installation
+}
+
+introduction() {
+	dialog --backtitle "$tit" --title "Disk partitioning introduction" --msgbox "This part of the installation will help you partition, format and mount your drive." 6 70
+	menu
+}
+
+introduction

@@ -1,0 +1,19 @@
+#!/bin/bash
+# This script will execute all archosu-* scripts in right order.
+source /lib/archosu-main
+
+checkversion() {
+	case "$uptodate" in
+		yes) ;;
+		*) echo "Your version of archosu-architect isn't up-to-date." && sleep 2 ;;
+	esac
+}
+
+introduction() {
+	dialog --backtitle "$tit" --title "Archosu! installation" --msgbox "Welcome to Archosu! \\nThis script will do all the installation for you, but you'll still have to do some things (like preparing drives for installation), but the script has all the scripts prepared." 8 80
+}
+
+checkversion
+bash /lib/archosu-utils-disk
+bash /lib/archosu-utils-installation
+dialog --ok-label "Reboot now" --nocancel --pause "Rebooting in 10 seconds...\\nBe sure, that your computer will boot from your drive you have installed.\\n\\nDO NOT UNPLUG YOUR BOOT DRIVE, OTHERWISE THE RESTARTING PROCESS WILL FREEZE (you can unplug the boot drive once you've exited from this boot session)." 15 71 10

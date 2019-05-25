@@ -1,0 +1,28 @@
+#!/bin/bash
+# This script will set time zone.
+source /lib/archosu-main
+timedatectl set-ntp true
+hwclock --systohc
+
+
+introduction() {
+	dialog --backtitle "$tit" --title "Time zone selection introduction" --msgbox "This part of the installation will set time zone for you." 5 70
+}
+
+checktimezone() { # Check timezone user is in.
+	dialog --title "$tit" --backtitle "$tit" --infobox "Checking timezone" 5 70
+	timezone=$(curl -s http://ip-api.com/json/ | grep -oP '"timezone":"\K[^"]+')
+	dialog --backtitle "$tit" --title "Detection done" --yesno "I've detected, your timezone is \"$timezone\", is that right?" 6 75 || selection
+	sudo timedatectl set-timezone "$timezone"
+}
+
+selection() { # Open this selection menu if the timezone isn't right.
+	clear
+	echo -e "Select the timezone:\\n--------------------"
+	timezone=$(tzselect)
+	echo "Your time zone is $timezone."
+	sudo timedatectl set-timezone "$timezone"
+}
+
+introduction
+checktimezone
