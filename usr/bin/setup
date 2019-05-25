@@ -10,9 +10,16 @@
 
 ### VARIABLES
 title=":: Archosu! architect ::"
+archosulink="https://github.com/yurisuki/Archosu.git"
+
+### PACKAGES
+packages=",archlinux-keyring
+,git
+G,archosu"
+echo "$packages" > /tmp/packages
 
 ### FUNCTIONS
-connect() {
+connect() { # Check if an internet connection is present, if not, then give user a prompt to choose a network.
     if [[ $(cat /proc/1/comm) == "systemd" ]]; then
 	        if [[ $(systemctl is-active NetworkManager) == "active" ]]; then
 		dialog --backtitle "$title" --yesno "Please connect to the internet\n" 0 0 &&
@@ -24,18 +31,37 @@ connect() {
     fi
 }
 
-download() {
-sudo pacman --noconfirm -Syy "$@"
-echo -e "\\nPress ENTER to continue."
+pacman_() { # Download packages using `pacman`
+	dialog --title "Downloading packages" --backtitle "$title" --infobox "Installing \`$1\` ($n of $total)." 5 70
+	sudo pacman --noconfirm -S "$1" >/dev/null 2>&1
+}
+
+git_() { # Download packages using `git`
+	dialog --title "Downloading packages" --backtitle "$title" --infobox "Installing \`$1\` ($n of $total)." 5 70
+	git clone "$1" /tmp/archosu >/dev/null 2>&1
+	sudo cp -rf /tmp/archosu/lib/* /lib/
+	sudo cp -rf /tmp/archosu/usr/bin/* /usr/bin/
+}
+
+download() { # Installation loop
+	dialog --title "Updating repositories" --backtitle "$title" --infobox "Updating repositories..." 4 70
+	pacman -Sy >/dev/null 2>&1
+	total=$(wc -l < /tmp/packages)
+	while IFS=, read -r tag package; do
+		n=$((n+1))
+		case "$tag" in
+			"G") git_ "$package" ;;
+			"") pacman_ "$package" ;;
+		esac
+done < /tmp/packages
 }
 
 ### AN ACTUAL SCRIPT
 # Check if internet connection is presented.
 ping -c 1 archlinux.org >/dev/null 2>&1 || connect
 
-# Download all the packages including the architect itself.
-download archlinux-keyring git 2>&1 | dialog --title "Installing all the needed packages for the installation." --backtitle "$title" --programbox "Updating the keyring and downloading osu-architect (the installation tool)" 25 90
+# Download all the packages.
+download
 
 # Execute the architect.
-bash /lib/archosu-architect
-
+exec /lib/archosu-architect
