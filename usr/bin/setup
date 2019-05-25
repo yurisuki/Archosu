@@ -37,5 +37,5 @@ ping -c 1 archlinux.org >/dev/null 2>&1 || connect
 download archlinux-keyring git 2>&1 | dialog --title "Installing all the needed packages for the installation." --backtitle "$title" --programbox "Updating the keyring and downloading osu-architect (the installation tool)" 25 90
 
 # Execute the architect.
-
+bash /lib/archosu-architect
 
