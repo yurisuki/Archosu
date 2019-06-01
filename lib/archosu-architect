@@ -15,5 +15,3 @@ introduction() {
 
 checkversion
 exec /lib/archosu-utils-disk
-exec /lib/archosu-utils-installation
-dialog --ok-label "Reboot now" --nocancel --pause "Rebooting in 10 seconds...\\nBe sure, that your computer will boot from your drive you have installed.\\n\\nDO NOT UNPLUG YOUR BOOT DRIVE, OTHERWISE THE RESTARTING PROCESS WILL FREEZE (you can unplug the boot drive once you've exited from this boot session)." 15 71 10

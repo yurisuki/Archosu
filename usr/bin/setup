@@ -14,8 +14,7 @@ archosulink="https://github.com/yurisuki/Archosu.git"
 
 ### PACKAGES
 packages=",archlinux-keyring
-,git
-G,archosu"
+,git"
 echo "$packages" > /tmp/packages
 
 ### FUNCTIONS

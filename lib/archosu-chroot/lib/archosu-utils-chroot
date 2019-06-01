@@ -51,7 +51,7 @@ installgrub() { # Install grub, the bootloader
 	grub-mkconfig -o /boot/grub/grub.cfg >/dev/null 2>&1
 }
 
-exec /lib/archosu-utils-time # Set timezone
+bash /lib/archosu-utils-time # Set timezone
 enableservices
 getuserandpass
 adduserandpass

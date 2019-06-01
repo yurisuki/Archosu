@@ -63,6 +63,7 @@ formatandmountdrive() {
 	dialog --title "Generating fstab file" --backtitle "$tit" --infobox "Generating fstab file..."
 	genfstab -U /mnt >> /mnt/etc/fstab
 	echo "$drive" | sed 's/[0-9]*//g' >/mnt/grubdrive # For `grub` installation
+	exec /lib/archosu-utils-installation
 }
 
 introduction() {

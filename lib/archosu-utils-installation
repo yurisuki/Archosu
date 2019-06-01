@@ -13,10 +13,13 @@ download() {
 }
 
 chrootfiles() {
-	cp -r /lib/archosu-chroot/* /mnt/
+	cp -r /lib/archosu-chroot/lib/* /mnt/
 	arch-chroot /mnt /bin/bash /lib/archosu-utils-chroot
 }
 
 introduction
 download base base-devel networkmanager dialog 2>&1 | dialog --title "Installing all the needed packages for the OS." --backtitle "$tit" --programbox 25 90
 chrootfiles
+
+# Reboot prompt
+dialog --ok-label "Reboot now" --nocancel --pause "Rebooting in 10 seconds...\\nBe sure, that your computer will boot from your drive you have installed.\\n\\nDO NOT UNPLUG YOUR BOOT DRIVE, OTHERWISE THE RESTARTING PROCESS WILL FREEZE (you can unplug the boot drive once you've exited from this boot session)." 15 71 10
